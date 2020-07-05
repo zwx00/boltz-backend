@@ -694,9 +694,22 @@ class Service {
     preimageHash: Buffer,
     invoiceAmount: number,
     claimPublicKey: Buffer,
+    satPerVbyte?: number,
   ) => {
     if (!this.allowReverseSwaps) {
       throw Errors.REVERSE_SWAPS_DISABLED();
+    }
+
+    if (satPerVbyte !== undefined) {
+      if (!this.prepayMinerFee) {
+        throw Errors.CUSTOM_MINER_FEE_FORBIDDEN();
+      }
+
+      if (satPerVbyte % 1 !== 0 || satPerVbyte < 1) {
+        throw Errors.INVALID_CUSTOM_MINER_FEE();
+      }
+
+      this.logger.debug(`Using fee of ${satPerVbyte} sat/vbyte for Reverse Swap`);
     }
 
     const side = this.getOrderSide(orderSide);
@@ -709,19 +722,26 @@ class Service {
 
     this.verifyAmount(pairId, rate, invoiceAmount, side, true);
 
-    const { baseFee, percentageFee } = await this.feeProvider.getFees(pairId, rate, side, invoiceAmount, true);
+    const { baseFee, percentageFee } = await this.feeProvider.getFees(
+      pairId,
+      rate,
+      side,
+      invoiceAmount,
+      true,
+      satPerVbyte,
+    );
 
     const onchainAmount = Math.floor(invoiceAmount * rate) - (baseFee + percentageFee);
 
     let holdInvoiceAmount = invoiceAmount;
-    let prepayMinerFeeAmount: number | undefined = undefined;
+    let prepayMinerFeeAmount: number | undefined;
 
     if (this.prepayMinerFee) {
       prepayMinerFeeAmount = Math.ceil(baseFee / rate);
       holdInvoiceAmount -= prepayMinerFeeAmount;
     }
 
-    if (onchainAmount < 1) {
+    if (onchainAmount < 1000) {
       throw Errors.ONCHAIN_AMOUNT_TOO_LOW();
     }
 

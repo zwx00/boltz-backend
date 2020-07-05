@@ -44,6 +44,7 @@ class FeeProvider {
     orderSide: OrderSide,
     amount: number,
     isReverse: boolean,
+    satPerVbyte?: number,
   ) => {
     let percentageFee = this.getPercentageFee(pair);
 
@@ -56,14 +57,21 @@ class FeeProvider {
 
     return {
       percentageFee: Math.ceil(percentageFee),
-      baseFee: await this.getBaseFee(chainCurrency, isReverse),
+      baseFee: await this.getBaseFee(chainCurrency, isReverse, satPerVbyte),
     };
   }
 
-  public getBaseFee = async (chainCurrency: string, isReverse: boolean) => {
-    const feeMap = await this.getFeeEstimation(chainCurrency);
+  public getBaseFee = async (chainCurrency: string, isReverse: boolean, satPerVbyte?: number) => {
+    let actualSatPerVbyte: number;
 
-    return this.calculateBaseFee(feeMap.get(chainCurrency)!, isReverse);
+    if (satPerVbyte) {
+      actualSatPerVbyte = satPerVbyte;
+    } else {
+      const feeMap = await this.getFeeEstimation(chainCurrency);
+      actualSatPerVbyte = feeMap.get(chainCurrency)!;
+    }
+
+    return this.calculateBaseFee(actualSatPerVbyte, isReverse);
   }
 
   private calculateBaseFee = (satPerVbyte: number, isReverse: boolean) => {

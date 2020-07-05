@@ -51,6 +51,8 @@ describe('FeeProvider', () => {
 
       feeProvider.getBaseFee('LTC', false),
       feeProvider.getBaseFee('LTC', true),
+
+      feeProvider.getBaseFee('BTC', false, 10),
     ]);
 
     const expected = [
@@ -59,6 +61,8 @@ describe('FeeProvider', () => {
 
       510,
       459,
+
+      1700,
     ];
 
     results.forEach((result, index) => {

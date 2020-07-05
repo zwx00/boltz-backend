@@ -281,17 +281,26 @@ class Controller {
       preimageHash,
       invoiceAmount,
       claimPublicKey,
+      satPerVbyte,
     } = this.validateRequest(req.body, [
       { name: 'pairId', type: 'string' },
       { name: 'orderSide', type: 'string' },
       { name: 'invoiceAmount', type: 'number' },
       { name: 'preimageHash', type: 'string', hex: true },
       { name: 'claimPublicKey', type: 'string', hex: true },
+      { name: 'satPerVbyte', type: 'number', optional: true },
     ]);
 
     this.checkPreimageHashLength(preimageHash);
 
-    const response = await this.service.createReverseSwap(pairId, orderSide, preimageHash, invoiceAmount, claimPublicKey);
+    const response = await this.service.createReverseSwap(
+      pairId,
+      orderSide,
+      preimageHash,
+      invoiceAmount,
+      claimPublicKey,
+      satPerVbyte,
+    );
 
     this.logger.verbose(`Created reverse swap with id: ${response.id}`);
     this.logger.silly(`Reverse swap ${response.id}: ${stringify(response)}`);

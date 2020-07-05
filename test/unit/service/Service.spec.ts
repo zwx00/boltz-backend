@@ -919,7 +919,7 @@ describe('Service', () => {
     });
 
     expect(mockGetFees).toHaveBeenCalledTimes(1);
-    expect(mockGetFees).toHaveBeenCalledWith(pair, 1, OrderSide.BUY, invoiceAmount, true);
+    expect(mockGetFees).toHaveBeenCalledWith(pair, 1, OrderSide.BUY, invoiceAmount, true, undefined);
 
     expect(mockCreateReverseSwap).toHaveBeenCalledTimes(1);
     expect(mockCreateReverseSwap).toHaveBeenCalledWith(
@@ -936,7 +936,7 @@ describe('Service', () => {
       undefined,
     );
 
-    // Throw if the onchain amount is less than 1
+    // Throw if the onchain amount is less than 1000
     await expect(service.createReverseSwap(
       pair,
       orderSide,
@@ -955,6 +955,16 @@ describe('Service', () => {
       invoiceAmountLimit,
       claimPublicKey,
     )).rejects.toEqual(Errors.BENEATH_MINIMAL_AMOUNT(invoiceAmountLimit, 1));
+
+    // Throw if a custom miner fee was specified although the prepay miner fee protocol is disabled
+    await expect(service.createReverseSwap(
+      pair,
+      orderSide,
+      preimageHash,
+      invoiceAmount,
+      claimPublicKey,
+      1,
+    )).rejects.toEqual(Errors.CUSTOM_MINER_FEE_FORBIDDEN());
 
     // Throw if reverse swaps are disabled
     service.allowReverseSwaps = false;
@@ -980,7 +990,7 @@ describe('Service', () => {
     const preimageHash = randomBytes(32);
     const claimPublicKey = getHexBuffer('0xfff');
 
-    const response = await service.createReverseSwap(
+    let response = await service.createReverseSwap(
       pair,
       orderSide,
       preimageHash,
@@ -1012,6 +1022,58 @@ describe('Service', () => {
       1,
       1,
     );
+
+    // Custom miner fee
+    let customMinerFee = 3;
+
+    response = await service.createReverseSwap(
+      pair,
+      orderSide,
+      preimageHash,
+      invoiceAmount,
+      claimPublicKey,
+      customMinerFee,
+    );
+
+    expect(response).toEqual({
+      onchainAmount,
+      id: mockedReverseSwap.id,
+      invoice: mockedReverseSwap.invoice,
+      redeemScript: mockedReverseSwap.redeemScript,
+      lockupAddress: mockedReverseSwap.lockupAddress,
+      minerFeeInvoice: mockedReverseSwap.minerFeeInvoice,
+      timeoutBlockHeight: mockedReverseSwap.timeoutBlockHeight,
+    });
+
+    expect(mockGetFees).toHaveBeenCalledTimes(2);
+    expect(mockGetFees).toHaveBeenNthCalledWith(2, pair, 1, OrderSide.BUY, invoiceAmount, true, customMinerFee);
+
+    expect(mockCreateReverseSwap).toHaveBeenCalledTimes(2);
+    expect(mockCreateReverseSwap).toHaveBeenNthCalledWith(2,
+      'BTC',
+      'BTC',
+      OrderSide.BUY,
+      preimageHash,
+      99999,
+      99998,
+      claimPublicKey,
+      1,
+      4,
+      1,
+      1,
+    );
+
+      // Throw if the custom miner fee is not a whole number
+    customMinerFee = 1.23;
+
+    await expect(service.createReverseSwap(
+      pair,
+      orderSide,
+      preimageHash,
+      invoiceAmount,
+      claimPublicKey,
+      customMinerFee,
+    )).rejects.toEqual(Errors.INVALID_CUSTOM_MINER_FEE());
 
     service['prepayMinerFee'] = false;
   });

@@ -99,4 +99,12 @@ export default {
     message: `inbound liquidity ${inboundLiquidity} is less than minimal ${minInboundLiquidity}`,
     code: concatErrorCode(ErrorCodePrefix.Service, 23),
   }),
+  CUSTOM_MINER_FEE_FORBIDDEN: (): Error => ({
+    message: 'setting custom miner fees is forbidden because the prepay miner fee protocol is not enabled',
+    code: concatErrorCode(ErrorCodePrefix.Service, 24),
+  }),
+  INVALID_CUSTOM_MINER_FEE: (): Error => ({
+    message: 'custom miner fee is not a positive integer',
+    code: concatErrorCode(ErrorCodePrefix.Service, 25),
+  }),
 };

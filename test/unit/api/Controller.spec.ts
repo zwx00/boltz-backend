@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { request, Request, Response } from 'express';
 import Logger from '../../../lib/Logger';
 import Service from '../../../lib/service/Service';
 import Controller from '../../../lib/api/Controller';
@@ -660,6 +660,24 @@ describe('Controller', () => {
       getHexBuffer(requestData.preimageHash),
       requestData.invoiceAmount,
       getHexBuffer(requestData.claimPublicKey),
+      undefined,
+    );
+
+    expect(res.status).toHaveBeenNthCalledWith(2, 201);
+    expect(res.json).toHaveBeenNthCalledWith(2, await mockCreateReverseSwap());
+
+    // Successful request with custom miner fee
+    requestData.satPerVbyte = 3;
+
+    await controller.createSwap(mockRequest(requestData), res);
+
+    expect(service.createReverseSwap).toHaveBeenCalledWith(
+      requestData.pairId,
+      requestData.orderSide,
+      getHexBuffer(requestData.preimageHash),
+      requestData.invoiceAmount,
+      getHexBuffer(requestData.claimPublicKey),
+      requestData.satPerVbyte,
     );
 
     expect(res.status).toHaveBeenNthCalledWith(2, 201);
