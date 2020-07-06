@@ -173,7 +173,9 @@ class Boltz {
         let lndClient: LndClient | undefined;
 
         if (currency.lnd) {
-          lndClient = new LndClient(this.logger, currency.lnd, currency.symbol);
+          // When the invoice expiry is 0 the default of 3600 will be used
+          const invoiceExpiry = currency.invoiceExpiry || 0;
+          lndClient = new LndClient(this.logger, currency.symbol, invoiceExpiry, currency.lnd);
         }
 
         this.currencies.set(currency.symbol, {

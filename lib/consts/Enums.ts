@@ -41,6 +41,7 @@ export enum SwapUpdateEvent {
 
   // Events for the prepay miner fee Reverse Swap protocol
   MinerFeePaid = 'minerfee.paid',
+  InvoiceExpired = 'invoice.expired',
 }
 
 export enum ChannelCreationType {

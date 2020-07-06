@@ -30,6 +30,9 @@ type CurrencyConfig = {
   minRemoteBalance: number;
 
   maxZeroConfAmount: number;
+
+  // Expiry of the invoices of this currency in seconds. The default is 3600
+  invoiceExpiry?: 3600
 };
 
 type ApiConfig = {

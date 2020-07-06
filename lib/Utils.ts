@@ -109,6 +109,26 @@ export const decodeInvoice = (invoice: string) => {
 };
 
 /**
+ * Returns the expiry date of the invoice if it is provided or calculates
+ * the expiry based on the timestamp and the default expiry delta of 3600
+ * Reference: https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md#tagged-fields
+ *
+ * @param timestamp creation timestamp of the invoice
+ * @param timeExpireDate expiry timestamp of the invoice
+ */
+export const getInvoiceExpiry = (timestamp?: number, timeExpireDate?: number) => {
+  let invoiceExpiry = timestamp || 0;
+
+  if (timeExpireDate) {
+    invoiceExpiry = timeExpireDate;
+  } else {
+    invoiceExpiry += 3600;
+  }
+
+  return invoiceExpiry;
+};
+
+/**
  * Splits a derivation path into multiple parts
  */
 export const splitDerivationPath = (path: string): { master: string, sub: number[] } => {

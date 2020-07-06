@@ -10,6 +10,7 @@ import RateProvider from '../rates/RateProvider';
 import SwapRepository from '../db/SwapRepository';
 import ReverseSwap from '../db/models/ReverseSwap';
 import { ReverseSwapOutputType } from '../consts/Consts';
+import InvoiceExpiryHandler from './InvoiceExpiryHandler';
 import ReverseSwapRepository from '../db/ReverseSwapRepository';
 import WalletManager, { Currency } from '../wallet/WalletManager';
 import TimeoutDeltaProvider from '../service/TimeoutDeltaProvider';
@@ -22,6 +23,7 @@ import {
   getChainCurrency,
   getHexBuffer,
   getHexString,
+  getInvoiceExpiry,
   getLightningCurrency,
   getPairId,
   getPrepayMinerFeeInvoiceMemo,
@@ -43,6 +45,7 @@ class SwapManager {
   public currencies = new Map<string, Currency>();
 
   public nursery: SwapNursery;
+  public invoiceExpiryHandler: InvoiceExpiryHandler;
 
   public swapRepository: SwapRepository;
   public reverseSwapRepository: ReverseSwapRepository;
@@ -71,12 +74,18 @@ class SwapManager {
       this.swapOutputType,
       retryInterval,
     );
+
+    this.invoiceExpiryHandler = new InvoiceExpiryHandler(this.logger, this.currencies, this.reverseSwapRepository);
   }
 
   public init = async (currencies: Currency[]) => {
     currencies.forEach((currency) => {
       this.currencies.set(currency.symbol, currency);
     });
+
+    if (this.prepayMinerFee) {
+      this.invoiceExpiryHandler.init();
+    }
 
     await this.nursery.init(currencies);
 
@@ -225,25 +234,15 @@ class SwapManager {
     });
 
     if (channelCreation) {
-      let invoiceExpiry = decodedInvoice.timestamp || 0;
+      const invoiceExpiry = getInvoiceExpiry(decodedInvoice.timestamp, decodedInvoice.timeExpireDate);
 
-      if (decodedInvoice.timeExpireDate) {
-        invoiceExpiry = decodedInvoice.timeExpireDate;
-      } else {
-        // Default invoice timeout
-        // Reference: https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md#tagged-fields
-        invoiceExpiry += 3600;
-      }
+      const { blocks } = await receivingCurrency.chainClient.getBlockchainInfo();
+      const blocksUntilExpiry = swap.timeoutBlockHeight - blocks;
 
-      if (invoiceExpiry) {
-        const { blocks } = await receivingCurrency.chainClient.getBlockchainInfo();
-        const blocksUntilExpiry = swap.timeoutBlockHeight - blocks;
+      const timeoutTimestamp = getUnixTime() + (blocksUntilExpiry * TimeoutDeltaProvider.blockTimes.get(receivingCurrency.symbol)! * 60);
 
-        const timeoutTimestamp = getUnixTime() + (blocksUntilExpiry * TimeoutDeltaProvider.blockTimes.get(receivingCurrency.symbol)! * 60);
-
-        if (timeoutTimestamp > invoiceExpiry) {
-          throw Errors.INVOICE_EXPIRES_TOO_EARLY(invoiceExpiry, timeoutTimestamp);
-        }
+      if (timeoutTimestamp > invoiceExpiry) {
+        throw Errors.INVOICE_EXPIRES_TOO_EARLY(invoiceExpiry, timeoutTimestamp);
       }
 
       await this.channelCreationRepository.setNodePublicKey(channelCreation, decodedInvoice.payeeNodeKey!);

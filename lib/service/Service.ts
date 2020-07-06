@@ -97,6 +97,7 @@ class Service {
       this.logger,
       this.currencies,
       this.swapManager.nursery,
+      this.swapManager.invoiceExpiryHandler,
     );
   }
 

@@ -177,6 +177,17 @@ describe('Utils', () => {
     }]);
   });
 
+  test('should get expiry of invoices', () => {
+    // Return the time expire date if it is not undefined
+    expect(utils.getInvoiceExpiry(0, 4)).toEqual(4);
+
+    // Add 3600 to the timestamp in case the time expire date is not defined
+    expect(utils.getInvoiceExpiry(1)).toEqual(3601);
+
+    // Use 0 as timestamp in case both arguments are undefined
+    expect(utils.getInvoiceExpiry()).toEqual(3600);
+  });
+
   test('should get rate', () => {
     const rate = 2;
     const reverseRate = 1 / rate;

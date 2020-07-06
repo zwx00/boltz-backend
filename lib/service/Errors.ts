@@ -107,4 +107,8 @@ export default {
     message: 'custom miner fee is not a positive integer',
     code: concatErrorCode(ErrorCodePrefix.Service, 25),
   }),
+  INVOICE_EXPIRED: (): Error => ({
+    message: 'invoice expired',
+    code: concatErrorCode(ErrorCodePrefix.Service, 26),
+  }),
 };

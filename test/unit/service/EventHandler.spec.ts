@@ -10,6 +10,7 @@ import EventHandler from '../../../lib/service/EventHandler';
 import { Currency } from '../../../lib/wallet/WalletManager';
 import ReverseSwap from '../../../lib/db/models/ReverseSwap';
 import ChannelCreation from '../../../lib/db/models/ChannelCreation';
+import InvoiceExpiryHandler from '../../../lib/swap/InvoiceExpiryHandler';
 
 type channelBackupCallback = (channelBackup: string) => void;
 
@@ -26,6 +27,8 @@ type coinsSentCallback = (reverseSwap: ReverseSwap, transaction: Transaction) =>
 type transactionCallback = (transaction: Transaction, swap: Swap | ReverseSwap, confirmed: boolean, isReverse: boolean) => void;
 
 type channelCreatedCallback = (swap: Swap, channelCreation: ChannelCreation) => void;
+
+type invoiceExpiredCallback = (reverseSwap: ReverseSwap) => void;
 
 let emitChannelBackup: channelBackupCallback;
 
@@ -120,6 +123,22 @@ jest.mock('../../../lib/swap/SwapNursery', () => {
 
 const mockedSwapNursery = <jest.Mock<SwapNursery>><any>SwapNursery;
 
+let emitInvoiceExpired: invoiceExpiredCallback;
+
+jest.mock('../../../lib/swap/InvoiceExpiryHandler', () => {
+  return jest.fn().mockImplementation(() => ({
+    on: (event: string, callback: any) => {
+      switch (event) {
+        case 'invoice.expired':
+          emitInvoiceExpired = callback;
+          break;
+      }
+    },
+  }));
+});
+
+const MockedInvoiceExpiryHandler = <jest.Mock<InvoiceExpiryHandler>><any>InvoiceExpiryHandler;
+
 const swap = {
   id: 'id',
   acceptZeroConf: true,
@@ -161,6 +180,7 @@ describe('EventHandler', () => {
     Logger.disabledLogger,
     currencies,
     mockedSwapNursery(),
+    new MockedInvoiceExpiryHandler(),
   );
 
   beforeEach(() => {
@@ -501,6 +521,27 @@ describe('EventHandler', () => {
     emitChannelCreated(swap, channelCreation);
 
     expect(eventsEmitted).toEqual(1);
+    eventsEmitted = 0;
+
+    // Invoice expired
+    eventHandler.once('swap.update', (id, message) => {
+      expect(id).toEqual(reverseSwap.id);
+      expect(message).toEqual({ status: SwapUpdateEvent.InvoiceExpired });
+
+      eventsEmitted += 1;
+    });
+
+    eventHandler.once('swap.failure', (failedSwap, isReverse, reason) => {
+      expect(failedSwap).toEqual(reverseSwap);
+      expect(isReverse).toEqual(true);
+      expect(reason).toEqual('invoice expired');
+
+      eventsEmitted += 1;
+    });
+
+    emitInvoiceExpired(reverseSwap);
+
+    expect(eventsEmitted).toEqual(2);
     eventsEmitted = 0;
   });
 

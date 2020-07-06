@@ -108,6 +108,9 @@ jest.mock('../../../lib/swap/SwapManager', () => {
         on: () => {},
       },
     },
+    invoiceExpiryHandler: {
+      on: () => {},
+    },
     swapRepository: mockedSwapRepository(),
     reverseSwapRepository: mockedReverseSwapRepository(),
     channelCreationRepository: mockedChannelCreationRepository(),

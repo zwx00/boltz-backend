@@ -7,6 +7,7 @@ import { SwapUpdateEvent } from '../consts/Enums';
 import ReverseSwap from '../db/models/ReverseSwap';
 import { Currency } from '../wallet/WalletManager';
 import ChannelCreation from '../db/models/ChannelCreation';
+import InvoiceExpiryHandler from '../swap/InvoiceExpiryHandler';
 
 type TransactionInfo = {
   eta?: number;
@@ -45,6 +46,7 @@ class EventHandler extends EventEmitter {
     private logger: Logger,
     private currencies: Map<string, Currency>,
     private nursery: SwapNursery,
+    private invoiceExpiryHandler: InvoiceExpiryHandler,
   ) {
     super();
 
@@ -162,6 +164,10 @@ class EventHandler extends EventEmitter {
           fundingTransactionVout: channelCreation.fundingTransactionVout!,
         },
       });
+    });
+
+    this.invoiceExpiryHandler.on('invoice.expired', (reverseSwap) => {
+      this.handleFailedReverseSwap(reverseSwap, Errors.INVOICE_EXPIRED().message, SwapUpdateEvent.InvoiceExpired);
     });
   }
 

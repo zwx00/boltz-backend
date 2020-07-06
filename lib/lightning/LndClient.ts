@@ -86,7 +86,12 @@ class LndClient extends BaseClient implements LndClient {
   /**
    * Create an LND client
    */
-  constructor(private logger: Logger, config: LndConfig, public readonly symbol: string) {
+  constructor(
+    private logger: Logger,
+    public readonly symbol: string,
+    private invoiceExpiry: number,
+    config: LndConfig,
+  ) {
     super();
 
     const { host, port, certpath, macaroonpath } = config;
@@ -245,6 +250,7 @@ class LndClient extends BaseClient implements LndClient {
   public addInvoice = (value: number, memo?: string) => {
     const request = new lndrpc.Invoice();
     request.setValue(value);
+    request.setExpiry(this.invoiceExpiry);
 
     if (memo) {
       request.setMemo(memo);
@@ -265,6 +271,7 @@ class LndClient extends BaseClient implements LndClient {
     const request = new invoicesrpc.AddHoldInvoiceRequest();
     request.setValue(value);
     request.setCltvExpiry(cltvExpiry);
+    request.setExpiry(this.invoiceExpiry);
     request.setHash(Uint8Array.from(preimageHash));
 
     if (memo) {
