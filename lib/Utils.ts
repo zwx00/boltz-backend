@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import { Transaction } from 'bitcoinjs-lib';
-import bolt11, { RoutingInfo } from '@boltz/bolt11';
+import bolt11, { RoutingInfo } from 'bolt11';
 import { OutputType, Scripts } from 'boltz-core';
 import commitHash from './Version';
 import packageJson from '../package.json';
@@ -82,12 +82,12 @@ export const minutesToMilliseconds = (minutes: number): number => {
   return minutes * 60 * 1000;
 };
 
-export const decodeInvoice = (invoice: string): bolt11.PaymentRequestObject & {
+export const decodeInvoice = (invoice: string, network: bolt11.Network): bolt11.PaymentRequestObject & {
   satoshis: number,
   paymentHash: string | undefined,
   routingInfo: bolt11.RoutingInfo | undefined,
 } => {
-  const decoded = bolt11.decode(invoice);
+  const decoded = bolt11.decode(invoice, network);
 
   let payment_hash: string | undefined;
   let routing_info: bolt11.RoutingInfo | undefined;

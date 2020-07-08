@@ -52,7 +52,7 @@ class EthereumWallet {
 
     // TODO: throw error for invalid configurations
     config.tokens.forEach((token) => {
-      const contract = new this.web3.eth.Contract(ContractABIs.IERC20ABI, token.address);
+      const contract = new this.web3.eth.Contract(ContractABIs.IERC20ABI as any, token.address);
 
       this.tokenContracts.set(token.symbol.toUpperCase(), contract);
 

@@ -235,7 +235,10 @@ class SwapNursery extends EventEmitter {
               this.emit('minerfee.paid', await this.reverseSwapRepository.setReverseSwapStatus(reverseSwap, SwapUpdateEvent.MinerFeePaid));
 
               // Send onchain coins in case the hold invoice was paid first
-              const holdInvoice = await lndClient.lookupInvoice(getHexBuffer(decodeInvoice(reverseSwap.invoice).paymentHash!));
+              const holdInvoice = await lndClient.lookupInvoice(
+                getHexBuffer(decodeInvoice(reverseSwap.invoice, currency.network).paymentHash!),
+              );
+
               if (holdInvoice.state === Invoice.InvoiceState.ACCEPTED) {
                 await this.sendReverseSwapCoins(reverseSwap);
               }
@@ -637,6 +640,8 @@ class SwapNursery extends EventEmitter {
     const chainCurrency = getChainCurrency(base, quote, reverseSwap.orderSide, true);
     const lightningCurrency = getLightningCurrency(base, quote, reverseSwap.orderSide, true);
 
+    const lightningNetwork = this.currencies.get(lightningCurrency)!.network;
+
     try {
       const chainClient = this.currencies.get(chainCurrency)!.chainClient;
       const wallet = this.walletManager.wallets.get(chainCurrency)!;
@@ -644,7 +649,7 @@ class SwapNursery extends EventEmitter {
       let feePerVbyte: number;
 
       if (reverseSwap.minerFeeInvoice) {
-        feePerVbyte = Math.round(decodeInvoice(reverseSwap.minerFeeInvoice).satoshis / FeeProvider.transactionSizes.reverseLockup);
+        feePerVbyte = Math.round(decodeInvoice(reverseSwap.minerFeeInvoice, lightningNetwork).satoshis / FeeProvider.transactionSizes.reverseLockup);
         this.logger.debug(`Using prepaid minerfee for Reverse Swap ${reverseSwap.id} of ${feePerVbyte} sat/vbyte`);
       } else {
         feePerVbyte = await chainClient.estimateFee(SwapNursery.reverseSwapMempoolEta);
@@ -658,7 +663,7 @@ class SwapNursery extends EventEmitter {
 
       this.emit('coins.sent', await this.reverseSwapRepository.setLockupTransaction(reverseSwap, transactionId, vout, fee), transaction);
     } catch (error) {
-      const preimageHash = getHexBuffer(decodeInvoice(reverseSwap.invoice).paymentHash!);
+      const preimageHash = getHexBuffer(decodeInvoice(reverseSwap.invoice, lightningNetwork).paymentHash!);
 
       const lndClient = this.currencies.get(lightningCurrency)!.lndClient!;
       await this.cancelInvoice(lndClient, preimageHash);
@@ -732,8 +737,10 @@ class SwapNursery extends EventEmitter {
 
     await chainClient.sendRawTransaction(refundTransaction.toHex());
 
-    const preimageHash = getHexBuffer(decodeInvoice(reverseSwap.invoice).paymentHash!);
-    await this.cancelInvoice(this.currencies.get(lightningCurrency)!.lndClient!, preimageHash);
+    const { network, lndClient } = this.currencies.get(lightningCurrency)!;
+
+    const preimageHash = getHexBuffer(decodeInvoice(reverseSwap.invoice, network).paymentHash!);
+    await this.cancelInvoice(lndClient!, preimageHash);
 
     this.emit('refund', await this.reverseSwapRepository.setTransactionRefunded(reverseSwap, minerFee), refundTransaction.getId());
   }

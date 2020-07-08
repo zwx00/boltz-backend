@@ -1,3 +1,5 @@
+import bolt11 from 'bolt11';
+import { Networks } from 'boltz-core';
 import Report from './Report';
 import Swap from '../db/models/Swap';
 import { OrderSide } from '../consts/Enums';
@@ -5,7 +7,7 @@ import SwapRepository from '../db/SwapRepository';
 import ReverseSwap from '../db/models/ReverseSwap';
 import { satoshisToCoins } from '../DenominationConverter';
 import ReverseSwapRepository from '../db/ReverseSwapRepository';
-import { splitPairId, decodeInvoice, stringify, mapToObject } from '../Utils';
+import { splitPairId, decodeInvoice, stringify, mapToObject, getLightningCurrency } from '../Utils';
 
 class Stats {
   private volumeMap = new Map<string, number>();
@@ -24,8 +26,17 @@ class Stats {
     } = await Report.getSuccessfulSwaps(this.swapRepository, this.reverseSwapRepository);
 
     const addSwapToMaps = (swap: Swap | ReverseSwap, isReverse: boolean) => {
-      const { quote } = splitPairId(swap.pair);
-      const amount = this.getSwapAmount(isReverse, swap.orderSide, swap.onchainAmount!, swap.invoice!);
+      const { base, quote } = splitPairId(swap.pair);
+      const lightningCurrency = getLightningCurrency(base, quote, swap.orderSide, isReverse);
+
+      const amount = this.getSwapAmount(
+        isReverse,
+        swap.orderSide,
+        swap.onchainAmount!,
+        swap.invoice!,
+        // TODO: other networks
+        lightningCurrency === 'BTC' ? Networks.bitcoinMainnet : Networks.litecoinMainnet,
+      );
 
       this.addToTrades(swap.pair);
       this.addToVolume(quote, amount);
@@ -70,12 +81,12 @@ class Stats {
     return volume;
   }
 
-  private getSwapAmount = (isReverse: boolean, orderSide: number, onchainAmount: number, invoice: string) => {
+  private getSwapAmount = (isReverse: boolean, orderSide: number, onchainAmount: number, invoice: string, network: bolt11.Network) => {
     if (
       (isReverse && orderSide === OrderSide.BUY) ||
       (!isReverse && orderSide === OrderSide.SELL)
     ) {
-      return decodeInvoice(invoice).satoshis;
+      return decodeInvoice(invoice, network).satoshis;
     } else {
       return onchainAmount;
     }

@@ -72,7 +72,7 @@ class Service {
     private logger: Logger,
     config: ConfigType,
     private walletManager: WalletManager,
-    private currencies: Map<string, Currency>,
+    public currencies: Map<string, Currency>,
   ) {
     this.prepayMinerFee = config.prepayminerfee;
     this.logger.debug(`Prepay miner fee for Reverse Swaps is ${this.prepayMinerFee ? 'enabled' : 'disabled' }`);
@@ -594,7 +594,7 @@ class Service {
     const chainCurrency = getChainCurrency(base, quote, swap.orderSide, false);
     const lightningCurrency = getLightningCurrency(base, quote, swap.orderSide, false);
 
-    const invoiceAmount = decodeInvoice(invoice).satoshis!;
+    const invoiceAmount = decodeInvoice(invoice, this.currencies.get(lightningCurrency)!.network).satoshis!;
     const rate = swap.rate || getRate(pairRate, swap.orderSide, false);
 
     this.verifyAmount(swap.pair, rate, invoiceAmount, swap.orderSide, false);
@@ -672,7 +672,11 @@ class Service {
       throw Errors.SWAP_WITH_INVOICE_EXISTS();
     }
 
-    const preimageHash = getHexBuffer(decodeInvoice(invoice).paymentHash!);
+    const { base, quote } = splitPairId(pairId);
+    const lightningCurrency = getLightningCurrency(base, quote, this.getOrderSide(orderSide), false);
+    const { network } = this.getCurrency(lightningCurrency);
+
+    const preimageHash = getHexBuffer(decodeInvoice(invoice, network).paymentHash!);
 
     const {
       id,

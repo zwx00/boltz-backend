@@ -217,7 +217,7 @@ class SwapManager {
     const { base, quote } = splitPairId(swap.pair);
     const { sendingCurrency, receivingCurrency } = this.getCurrencies(base, quote, swap.orderSide);
 
-    const decodedInvoice = decodeInvoice(invoice);
+    const decodedInvoice = decodeInvoice(invoice, sendingCurrency.network);
 
     if (decodedInvoice.paymentHash !== swap.preimageHash) {
       throw Errors.INVOICE_INVALID_PREIMAGE_HASH(swap.preimageHash);
@@ -404,13 +404,13 @@ class SwapManager {
       if ((swap.status === SwapUpdateEvent.SwapCreated || swap.status === SwapUpdateEvent.MinerFeePaid) && isReverse) {
         const reverseSwap = swap as ReverseSwap;
 
-        const { lndClient } = this.currencies.get(lightningCurrency)!;
+        const { lndClient, network } = this.currencies.get(lightningCurrency)!;
 
         if (reverseSwap.minerFeeInvoice && swap.status !== SwapUpdateEvent.MinerFeePaid) {
-          lndClient!.subscribeSingleInvoice(getHexBuffer(decodeInvoice(reverseSwap.minerFeeInvoice).paymentHash!));
+          lndClient!.subscribeSingleInvoice(getHexBuffer(decodeInvoice(reverseSwap.minerFeeInvoice, network).paymentHash!));
         }
 
-        lndClient!.subscribeSingleInvoice(getHexBuffer(decodeInvoice(reverseSwap.invoice).paymentHash!));
+        lndClient!.subscribeSingleInvoice(getHexBuffer(decodeInvoice(reverseSwap.invoice, network).paymentHash!));
 
       } else if ((swap.status === SwapUpdateEvent.TransactionMempool || swap.status === SwapUpdateEvent.TransactionConfirmed) && isReverse) {
         const { chainClient } = this.currencies.get(chainCurrency)!;

@@ -200,7 +200,7 @@ class NotificationProvider {
         `Order side: ${swap.orderSide === OrderSide.BUY ? 'buy' : 'sell'}`;
 
       if (swap.invoice) {
-        const lightningAmount = decodeInvoice(swap.invoice).satoshis;
+        const lightningAmount = decodeInvoice(swap.invoice, this.service.currencies.get(lightningSymbol)!.network).satoshis;
 
         message += `${swap.onchainAmount ? `\nOnchain amount: ${satoshisToCoins(swap.onchainAmount)} ${onchainSymbol}` : ''}` +
           `\nLightning amount: ${satoshisToCoins(lightningAmount)} ${lightningSymbol}`;
