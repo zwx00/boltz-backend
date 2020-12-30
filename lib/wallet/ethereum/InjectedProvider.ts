@@ -19,57 +19,18 @@ enum EthProviderService {
 class InjectedProvider implements providers.Provider {
   public _isProvider = true;
 
-  private providers = new Map<string, providers.WebSocketProvider>();
+  private providers = new Map<EthProviderService, providers.WebSocketProvider>();
   private pendingEthereumTransactionRepository = new PendingEthereumTransactionRepository();
 
   private network!: providers.Network;
 
   private static readonly requestTimeout = 2500;
+  private static readonly timeoutErrorMessage = 'timeout';
 
-  constructor(private logger: Logger, config: EthereumConfig) {
-    if (config.providerEndpoint) {
-      this.providers.set(EthProviderService.Websocket, new providers.WebSocketProvider(config.providerEndpoint));
-      this.logAddedProvider(EthProviderService.Websocket, { endpoint: config.providerEndpoint });
-    } else {
-      this.logDisabledProvider(EthProviderService.Websocket, 'no endpoint was specified');
-    }
-
-    const addEthProvider = (name: EthProviderService, providerConfig: EthProviderServiceConfig) => {
-      if (!providerConfig.apiKey) {
-        this.logDisabledProvider(name, 'no api key was set');
-        return;
-      }
-
-      if (!providerConfig.network) {
-        this.logDisabledProvider(name, 'no network was specified');
-        return;
-      }
-
-      switch (name) {
-        case EthProviderService.Infura:
-          this.providers.set(name, new providers.InfuraWebSocketProvider(
-            providerConfig.network,
-            providerConfig.apiKey,
-          ));
-          break;
-
-        case EthProviderService.Alchemy:
-          this.providers.set(name, new providers.AlchemyWebSocketProvider(
-            providerConfig.network,
-            providerConfig.apiKey,
-          ));
-          break;
-
-        default:
-          this.logDisabledProvider(name, 'provider not supported');
-          return;
-      }
-
-      this.logAddedProvider(name, providerConfig);
-    };
-
-    addEthProvider(EthProviderService.Infura, config.infura);
-    addEthProvider(EthProviderService.Alchemy, config.alchemy);
+  constructor(private logger: Logger, private config: EthereumConfig) {
+    this.setEthProvider(EthProviderService.Websocket);
+    this.setEthProvider(EthProviderService.Infura);
+    this.setEthProvider(EthProviderService.Alchemy);
 
     if (this.providers.size === 0) {
       throw Errors.NO_PROVIDER_SPECIFIED();
@@ -321,7 +282,7 @@ class InjectedProvider implements providers.Provider {
       try {
         const result = await this.promiseWithTimeout(
           provider[method](...args),
-          'timeout'
+          InjectedProvider.timeoutErrorMessage,
         );
 
         if (result !== null) {
@@ -333,6 +294,18 @@ class InjectedProvider implements providers.Provider {
         const formattedError = formatError(error);
 
         this.logger.warn(`Request to ${providerName} Web3 provider failed: ${formattedError}`);
+
+        // Reinitialize the provider on timeouts
+        if (formattedError === InjectedProvider.timeoutErrorMessage) {
+          this.logger.verbose(`Reinitializing provider ${providerName}`);
+
+          try {
+            this.setEthProvider(providerName);
+          } catch (error) {
+            this.logger.warn(`Could not reinitialize provider ${providerName}: ${formatError(error)}`);
+          }
+        }
+
         errors.push(formattedError);
       }
     }
@@ -371,6 +344,67 @@ class InjectedProvider implements providers.Provider {
 
     return hash;
   }
+
+  private setEthProvider = (service: EthProviderService) => {
+    if (service === EthProviderService.Websocket) {
+      const providerEndpoint = this.config.providerEndpoint;
+
+      if (providerEndpoint !== '') {
+        this.providers.set(EthProviderService.Websocket, new providers.WebSocketProvider(providerEndpoint as string));
+        this.logAddedProvider(EthProviderService.Websocket, { endpoint: providerEndpoint });
+      } else {
+        this.logDisabledProvider(EthProviderService.Websocket, 'no endpoint was specified');
+      }
+    } else {
+      const apiConfigValid = (config: EthProviderServiceConfig) => {
+        if (!config.apiKey) {
+          this.logDisabledProvider(service, 'no api key was set');
+          return false;
+        }
+
+        if (!config.network) {
+          this.logDisabledProvider(service, 'no network was specified');
+          return false;
+        }
+
+        return true;
+      };
+
+      switch (service) {
+        case EthProviderService.Infura: {
+          const config = this.config.infura;
+
+          if (apiConfigValid(config)) {
+            this.providers.set(service, new providers.InfuraWebSocketProvider(
+              config.network,
+              config.apiKey,
+            ));
+            this.logAddedProvider(service, config);
+          }
+
+          break;
+        }
+
+        case EthProviderService.Alchemy: {
+          const config = this.config.alchemy;
+
+          if (apiConfigValid(config)) {
+            this.providers.set(service, new providers.AlchemyWebSocketProvider(
+              config.network,
+              config.apiKey,
+            ));
+            this.logAddedProvider(service, config);
+          }
+
+          break;
+        }
+
+        default:
+          this.logDisabledProvider(service, 'provider not supported');
+          break;
+      }
+    }
+  };
 
   private logAddedProvider = (name: string, config: Record<string, any>) => {
     this.logger.debug(`Adding Web3 provider ${name}: ${stringify(config)}`);
