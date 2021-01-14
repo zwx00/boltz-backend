@@ -329,7 +329,9 @@ class LndClient extends BaseClient implements LndClient {
    * @param invoice an invoice for a payment within the Lightning Network
    * @param outgoingChannelId channel through which the invoice should be paid
    */
-  public sendPayment = (invoice: string, outgoingChannelId?: string): Promise<lndrpc.Payment.AsObject> => {
+  public sendPayment = async (invoice: string, outgoingChannelId?: string): Promise<lndrpc.Payment.AsObject> => {
+    await this.unaryCall(this.router, 'resetMissionControl', new routerrpc.ResetMissionControlRequest());
+
     return new Promise<lndrpc.Payment.AsObject>((resolve, reject) => {
       const request = new routerrpc.SendPaymentRequest();
 
