@@ -1,6 +1,7 @@
 import { baseAsset, checkPrice, quoteAsset } from './Consts';
 import Kraken from '../../../../lib/rates/data/exchanges/Kraken';
 import Binance from '../../../../lib/rates/data/exchanges/Binance';
+import Bittrex from '../../../../lib/rates/data/exchanges/Bittrex';
 import Bitfinex from '../../../../lib/rates/data/exchanges/Bitfinex';
 import Poloniex from '../../../../lib/rates/data/exchanges/Poloniex';
 import CoinbasePro from '../../../../lib/rates/data/exchanges/CoinbasePro';
@@ -37,6 +38,13 @@ describe('Exchanges', () => {
   test('should get price from Poloniex', async () => {
     const poloniex = new Poloniex();
     const price = await poloniex.getPrice(baseAsset, quoteAsset);
+
+    checkPrice(price);
+  });
+
+  test('should get price from Bittrex', async () => {
+    const bittrex = new Bittrex();
+    const price = await bittrex.getPrice(baseAsset, quoteAsset);
 
     checkPrice(price);
   });
