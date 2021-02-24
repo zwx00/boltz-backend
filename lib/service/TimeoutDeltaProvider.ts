@@ -16,6 +16,7 @@ class TimeoutDeltaProvider {
   // A map of the symbols of currencies and their block times in minutes
   public static blockTimes = new Map<string, number>([
     ['BTC', 10],
+    ['VTC', 2.5],
     ['LTC', 2.5],
     ['ETH', 0.25],
   ]);
