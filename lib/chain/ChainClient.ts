@@ -53,6 +53,13 @@ class ChainClient extends BaseClient {
     // Therefore the host and ports for these chains have to be configured manually
     try {
       zmqNotifications = await this.getZmqNotifications();
+
+      for (const notificationIndex in zmqNotifications) {
+        const address = zmqNotifications[notificationIndex].address;
+        if (address.includes('0.0.0.0')) {
+          zmqNotifications[notificationIndex].address = address.replace('0.0.0.0', this.config.host);
+        }
+      }
     } catch (error) {
       if (error.message !== 'Method not found') {
         throw error;
