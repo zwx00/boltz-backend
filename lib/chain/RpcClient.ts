@@ -13,7 +13,7 @@ class RpcClient {
     }
 
     const cookieFile = readFileSync(config.cookie, 'utf-8');
-    this.auth = Buffer.from(cookieFile).toString('base64');
+    this.auth = Buffer.from(cookieFile.trim()).toString('base64');
 
     this.options = {
       host: config.host,
