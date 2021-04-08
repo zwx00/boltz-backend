@@ -28,7 +28,7 @@ import { ERC20SwapValues, EtherSwapValues } from '../consts/Types';
 import ChannelCreationRepository from '../db/ChannelCreationRepository';
 import { etherDecimals, ReverseSwapOutputType } from '../consts/Consts';
 import ERC20WalletProvider from '../wallet/providers/ERC20WalletProvider';
-import { ChannelCreationStatus, CurrencyType, SwapUpdateEvent } from '../consts/Enums';
+import { ChannelCreationStatus, ChannelCreationType, CurrencyType, SwapUpdateEvent } from '../consts/Enums';
 import { queryERC20SwapValuesFromLock, queryEtherSwapValuesFromLock } from '../wallet/ethereum/ContractUtils';
 import {
   calculateEthereumTransactionFee,
@@ -725,6 +725,15 @@ class SwapNursery extends EventEmitter {
     const lightningSymbol = getLightningCurrency(base, quote, swap.orderSide, false);
 
     const lightningCurrency = this.currencies.get(lightningSymbol)!;
+
+    if (
+      channelCreation &&
+      channelCreation.status === null &&
+      channelCreation.type === ChannelCreationType.Create
+    ) {
+      await this.channelNursery.openChannel(lightningCurrency, swap, channelCreation);
+      return;
+    }
 
     try {
       const raceTimeout = LndClient.paymentTimeout * 2;
