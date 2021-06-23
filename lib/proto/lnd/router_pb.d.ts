@@ -65,6 +65,8 @@ export class SendPaymentRequest extends jspb.Message {
     setNoInflightUpdates(value: boolean): SendPaymentRequest;
     getMaxShardSizeMsat(): number;
     setMaxShardSizeMsat(value: number): SendPaymentRequest;
+    getAmp(): boolean;
+    setAmp(value: boolean): SendPaymentRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SendPaymentRequest.AsObject;
@@ -100,6 +102,7 @@ export namespace SendPaymentRequest {
         maxParts: number,
         noInflightUpdates: boolean,
         maxShardSizeMsat: number,
+        amp: boolean,
     }
 }
 
@@ -302,6 +305,45 @@ export class QueryMissionControlResponse extends jspb.Message {
 export namespace QueryMissionControlResponse {
     export type AsObject = {
         pairsList: Array<PairHistory.AsObject>,
+    }
+}
+
+export class XImportMissionControlRequest extends jspb.Message { 
+    clearPairsList(): void;
+    getPairsList(): Array<PairHistory>;
+    setPairsList(value: Array<PairHistory>): XImportMissionControlRequest;
+    addPairs(value?: PairHistory, index?: number): PairHistory;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): XImportMissionControlRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: XImportMissionControlRequest): XImportMissionControlRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: XImportMissionControlRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): XImportMissionControlRequest;
+    static deserializeBinaryFromReader(message: XImportMissionControlRequest, reader: jspb.BinaryReader): XImportMissionControlRequest;
+}
+
+export namespace XImportMissionControlRequest {
+    export type AsObject = {
+        pairsList: Array<PairHistory.AsObject>,
+    }
+}
+
+export class XImportMissionControlResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): XImportMissionControlResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: XImportMissionControlResponse): XImportMissionControlResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: XImportMissionControlResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): XImportMissionControlResponse;
+    static deserializeBinaryFromReader(message: XImportMissionControlResponse, reader: jspb.BinaryReader): XImportMissionControlResponse;
+}
+
+export namespace XImportMissionControlResponse {
+    export type AsObject = {
     }
 }
 
@@ -952,6 +994,49 @@ export namespace ForwardHtlcInterceptResponse {
     }
 }
 
+export class UpdateChanStatusRequest extends jspb.Message { 
+
+    hasChanPoint(): boolean;
+    clearChanPoint(): void;
+    getChanPoint(): lnd_rpc_pb.ChannelPoint | undefined;
+    setChanPoint(value?: lnd_rpc_pb.ChannelPoint): UpdateChanStatusRequest;
+    getAction(): ChanStatusAction;
+    setAction(value: ChanStatusAction): UpdateChanStatusRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UpdateChanStatusRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: UpdateChanStatusRequest): UpdateChanStatusRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UpdateChanStatusRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UpdateChanStatusRequest;
+    static deserializeBinaryFromReader(message: UpdateChanStatusRequest, reader: jspb.BinaryReader): UpdateChanStatusRequest;
+}
+
+export namespace UpdateChanStatusRequest {
+    export type AsObject = {
+        chanPoint?: lnd_rpc_pb.ChannelPoint.AsObject,
+        action: ChanStatusAction,
+    }
+}
+
+export class UpdateChanStatusResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UpdateChanStatusResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: UpdateChanStatusResponse): UpdateChanStatusResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UpdateChanStatusResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UpdateChanStatusResponse;
+    static deserializeBinaryFromReader(message: UpdateChanStatusResponse, reader: jspb.BinaryReader): UpdateChanStatusResponse;
+}
+
+export namespace UpdateChanStatusResponse {
+    export type AsObject = {
+    }
+}
+
 export enum FailureDetail {
     UNKNOWN = 0,
     NO_DETAIL = 1,
@@ -992,4 +1077,10 @@ export enum ResolveHoldForwardAction {
     SETTLE = 0,
     FAIL = 1,
     RESUME = 2,
+}
+
+export enum ChanStatusAction {
+    ENABLE = 0,
+    DISABLE = 1,
+    AUTO = 2,
 }

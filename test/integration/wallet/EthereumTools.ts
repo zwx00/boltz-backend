@@ -15,13 +15,13 @@ export const getSigner = (): { provider: providers.WebSocketProvider, signer: Si
 };
 
 export const getTokenContract = (signer: Signer): ERC20 => {
-  return new Contract('0x23d5395De7862A174b0cCbf9f7A350b4b8afC720', ContractABIs.ERC20, signer) as any as ERC20;
+  return new Contract('0x5bEFc41A78Fb5821101dbc6C43Aa3FD2306Ff644', ContractABIs.ERC20, signer) as any as ERC20;
 };
 
 export const getSwapContracts = (signer: Signer): { etherSwap: EtherSwap, erc20Swap: ERC20Swap } => {
   return {
-    etherSwap: new Contract('0xCc2dd65Bc10AdbE3C6cF341aaFB5d9440E72cc20', ContractABIs.EtherSwap, signer) as any as EtherSwap,
-    erc20Swap: new Contract('0xf90664Edb44fd966089673f289834DaDb9888203', ContractABIs.ERC20Swap, signer) as any as ERC20Swap,
+    etherSwap: new Contract('0x28F472289cB2682e203d861A312d25D514fAA2EF', ContractABIs.EtherSwap, signer) as any as EtherSwap,
+    erc20Swap: new Contract('0xe0FfDCAAdc5de7b2b6C05173879c18322a49092E', ContractABIs.ERC20Swap, signer) as any as ERC20Swap,
   };
 };
 
