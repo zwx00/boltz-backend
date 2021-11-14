@@ -1,4 +1,3 @@
-import { fromSeed } from 'bip32';
 import ops from '@boltz/bitcoin-ops';
 import { Networks } from 'boltz-core';
 import { crypto, script, Transaction } from 'bitcoinjs-lib';
@@ -6,7 +5,7 @@ import { generateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Logger from '../../../lib/Logger';
 import Wallet from '../../../lib/wallet/Wallet';
 import Database from '../../../lib/db/Database';
-import { getHexBuffer } from '../../../lib/Utils';
+import { getBip32, getHexBuffer } from '../../../lib/Utils';
 import KeyRepository from '../../../lib/db/repositories/KeyRepository';
 import { CurrencyType } from '../../../lib/consts/Enums';
 import LndWalletProvider from '../../../lib/wallet/providers/LndWalletProvider';
@@ -57,7 +56,7 @@ describe('Wallet', () => {
   const encodedAddress = 'bcrt1q0jnvwxtejp7rd4wk9ue96mvpqj5yjaz9v7vte5';
 
   const mnemonic = generateMnemonic();
-  const masterNode = fromSeed(mnemonicToSeedSync(mnemonic));
+  const masterNode = getBip32().fromSeed(mnemonicToSeedSync(mnemonic));
 
   const database = new Database(Logger.disabledLogger, ':memory:');
 

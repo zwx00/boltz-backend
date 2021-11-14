@@ -1,13 +1,12 @@
 import fs from 'fs';
 import { providers } from 'ethers';
-import * as ecc from 'tiny-secp256k1';
+import { BIP32Interface } from 'bip32';
 import { Network } from 'bitcoinjs-lib';
-import BIP32Factory, { BIP32Interface } from 'bip32';
 import { mnemonicToSeedSync, validateMnemonic } from 'bip39';
 import Errors from './Errors';
 import Wallet from './Wallet';
 import Logger from '../Logger';
-import { splitDerivationPath } from '../Utils';
+import { getBip32, splitDerivationPath } from '../Utils';
 import ChainClient from '../chain/ChainClient';
 import LndClient from '../lightning/LndClient';
 import { CurrencyType } from '../consts/Enums';
@@ -45,8 +44,6 @@ type Currency = {
   provider?: providers.Provider;
 };
 
-const bip32 = BIP32Factory(ecc);
-
 /**
  * WalletManager creates wallets instances that generate keys derived from the seed and
  * interact with the wallet of LND to send and receive onchain coins
@@ -64,7 +61,7 @@ class WalletManager {
 
   constructor(private logger: Logger, mnemonicPath: string, private currencies: Currency[], ethereumManager?: EthereumManager) {
     this.mnemonic = this.loadMnemonic(mnemonicPath);
-    this.masterNode = bip32.fromSeed(mnemonicToSeedSync(this.mnemonic));
+    this.masterNode = getBip32().fromSeed(mnemonicToSeedSync(this.mnemonic));
 
     this.keyRepository = new KeyRepository();
 

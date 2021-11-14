@@ -1,6 +1,6 @@
+import { ECPair } from 'ecpair';
 import { randomBytes } from 'crypto';
 import { Networks } from 'boltz-core';
-import { ECPair } from 'bitcoinjs-lib';
 import { BigNumber, providers } from 'ethers';
 import Logger from '../../../lib/Logger';
 import Swap from '../../../lib/db/models/Swap';

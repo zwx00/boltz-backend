@@ -1,7 +1,8 @@
 import { Op } from 'sequelize';
+import { ECPair } from 'ecpair';
 import bolt11 from '@boltz/bolt11';
 import { randomBytes } from 'crypto';
-import { address, ECPair } from 'bitcoinjs-lib';
+import { address } from 'bitcoinjs-lib';
 import { Networks, OutputType } from 'boltz-core';
 import Logger from '../../../lib/Logger';
 import Errors from '../../../lib/swap/Errors';

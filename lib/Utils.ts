@@ -1,6 +1,8 @@
 import os from 'os';
 import path from 'path';
+import BIP32Factory from 'bip32';
 import { randomBytes } from 'crypto';
+import * as ecc from 'tiny-secp256k1';
 import { OutputType, Scripts } from 'boltz-core';
 import { Transaction, crypto } from 'bitcoinjs-lib';
 import bolt11, { RoutingInfo } from '@boltz/bolt11';
@@ -464,4 +466,8 @@ export const hashString = (input: string): string => {
 
 export const createApiCredential = (): string => {
   return randomBytes(32).toString('hex');
+};
+
+export const getBip32 = () => {
+  return BIP32Factory(ecc);
 };
