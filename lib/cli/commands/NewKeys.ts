@@ -1,4 +1,4 @@
-import { ECPair } from 'bitcoinjs-lib';
+import { ECPair } from 'ecpair';
 import { getHexString, stringify } from '../../Utils';
 
 export const command = 'newkeys';
