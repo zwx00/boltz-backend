@@ -18,6 +18,7 @@ RUN apt-get -y install \
   jq \
   psmisc \
   openssl \
+  sqlite3 \
   libzmq3-dev \
   libevent-dev \
   libevent-dev \

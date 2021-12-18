@@ -40,7 +40,7 @@ BERKELEY_5_VERSION = BuildArgument(
     value="5.1.29"
 )
 
-BITCOIN_VERSION = "22.0"
+BITCOIN_VERSION = "22.0-taproot"
 LITECOIN_VERSION = "0.18.1"
 DOGECOIN_VERSION = "1.14.4"
 ZCASH_VERSION = "4.5.1-1"
@@ -114,7 +114,7 @@ IMAGES: Dict[str, Image] = {
         ],
     ),
     "regtest": Image(
-        tags=["3.3.1"],
+        tags=["3.3.1-taproot"],
         arguments=[
             UBUNTU_VERSION,
             BuildArgument(

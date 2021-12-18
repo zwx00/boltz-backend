@@ -3,10 +3,10 @@ import path from 'path';
 import BIP32Factory from 'bip32';
 import { randomBytes } from 'crypto';
 import * as ecc from 'tiny-secp256k1';
-import { OutputType, Scripts } from 'boltz-core';
 import { Transaction, crypto } from 'bitcoinjs-lib';
 import bolt11, { RoutingInfo } from '@boltz/bolt11';
 import { BigNumber, ContractTransaction } from 'ethers';
+import { Errors, OutputType, Scripts } from 'boltz-core';
 import commitHash from './Version';
 import packageJson from '../package.json';
 import { OrderSide } from './consts/Enums';
@@ -297,6 +297,9 @@ export const getPubkeyHashFunction = (outputType: OutputType): (
 
     case OutputType.Legacy:
       return p2pkhOutput;
+
+    case OutputType.Taproot:
+      throw Errors.TAPROOT_NOT_SUPPORTED;
   }
 };
 
@@ -310,6 +313,9 @@ export const getScriptHashFunction = (outputType: OutputType): (scriptHex: Buffe
 
     case OutputType.Legacy:
       return p2shOutput;
+
+    case OutputType.Taproot:
+      throw Errors.TAPROOT_NOT_SUPPORTED;
   }
 };
 

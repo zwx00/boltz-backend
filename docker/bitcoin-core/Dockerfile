@@ -12,6 +12,7 @@ COPY --from=berkeley-db /opt /opt
 
 RUN apt-get update && apt-get -y upgrade
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
+  git \
   wget \
   libtool \
   python3 \
@@ -21,6 +22,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
   bsdmainutils \
   libevent-dev \
   autotools-dev \
+  libsqlite3-dev \
   build-essential \
   libboost-test-dev \
   libboost-chrono-dev \
@@ -30,13 +32,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
 
 ENV BITCOIN_PREFIX=/opt/bitcoin-${VERSION}
 
-RUN wget https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS
-RUN wget https://bitcoincore.org/bin/bitcoin-core-${VERSION}/bitcoin-${VERSION}.tar.gz
+# This PR is needed to create Taproot addresses: https://github.com/bitcoin/bitcoin/pull/22364
+RUN git clone https://github.com/achow101/bitcoin.git
 
-RUN grep "bitcoin-${VERSION}.tar.gz\$" SHA256SUMS | sha256sum -c -
-RUN tar -xzf *.tar.gz
+WORKDIR /bitcoin
 
-WORKDIR /bitcoin-${VERSION}
+RUN git checkout default-tr-desc
 
 RUN ./autogen.sh
 RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/include/ \
