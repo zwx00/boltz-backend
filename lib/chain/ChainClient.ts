@@ -1,11 +1,12 @@
 import { Transaction } from 'bitcoinjs-lib';
+import { Transaction as LiquidTransaction } from 'liquidjs-lib';
 import Logger from '../Logger';
 import RpcClient from './RpcClient';
 import BaseClient from '../BaseClient';
 import { ChainConfig } from '../Config';
 import { getHexString } from '../Utils';
 import MempoolSpace from './MempoolSpace';
-import { ClientStatus } from '../consts/Enums';
+import { ClientStatus, CurrencyType } from '../consts/Enums';
 import ZmqClient, { filters, ZmqNotification } from './ZmqClient';
 import ChainTipRepository from '../db/repositories/ChainTipRepository';
 import { Block, BlockchainInfo, BlockVerbose, NetworkInfo, RawTransaction, UnspentUtxo, WalletInfo } from '../consts/Types';
@@ -14,8 +15,8 @@ interface ChainClient {
   on(event: 'block', listener: (height: number) => void): this;
   emit(event: 'block', height: number): boolean;
 
-  on(event: 'transaction', listener: (transaction: Transaction, confirmed: boolean) => void): this;
-  emit(event: 'transaction', transaction: Transaction, confirmed: boolean): boolean;
+  on(event: 'transaction', listener: (transaction: Transaction | LiquidTransaction, confirmed: boolean) => void): this;
+  emit(event: 'transaction', transaction: Transaction | LiquidTransaction, confirmed: boolean): boolean;
 }
 
 class ChainClient extends BaseClient {
@@ -23,8 +24,10 @@ class ChainClient extends BaseClient {
 
   public zmqClient: ZmqClient;
 
-  private client: RpcClient;
+  protected client: RpcClient;
   private chainTipRepository!: ChainTipRepository;
+
+  public currencyType: CurrencyType = CurrencyType.BitcoinLike;
 
   private readonly mempoolSpace?: MempoolSpace;
 
@@ -101,7 +104,7 @@ class ChainClient extends BaseClient {
       }
     }
 
-    await this.zmqClient.init(zmqNotifications);
+    await this.zmqClient.init(this.currencyType, zmqNotifications);
     await this.listenToZmq();
 
     if (this.mempoolSpace) {
