@@ -138,7 +138,7 @@ class UtxoNursery extends EventEmitter {
 
       chainClient.removeInputFilter(input.hash);
       this.emit('reverseSwap.claimed', reverseSwap, chainClient.currencyType === CurrencyType.BitcoinLike ?
-        detectPreimage(vin, transaction as Transaction) : detectPreimageLiquid(vin, transaction as LiquidTransaction),
+        detectPreimage(vin, transaction as Transaction) : detectPreimageLiquid(vin, transaction as any),
       );
     }
   };
@@ -277,7 +277,7 @@ class UtxoNursery extends EventEmitter {
 
     const swapOutput = chainClient.currencyType === CurrencyType.BitcoinLike ?
       detectSwap(getHexBuffer(swap.redeemScript!), transaction as Transaction)! :
-      detectSwapLiquid(getHexBuffer(swap.redeemScript!), transaction as LiquidTransaction)!;
+      detectSwapLiquid(getHexBuffer(swap.redeemScript!), transaction as any)!;
 
     const outputValue = chainClient.currencyType === CurrencyType.BitcoinLike ?
       swapOutput.value as number :

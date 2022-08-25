@@ -626,10 +626,10 @@ class SwapNursery extends EventEmitter {
     if (swap.lockupTransactionVout === undefined) {
       swap.lockupTransactionVout = chainClient.currencyType === CurrencyType.BitcoinLike ?
         detectSwap(getHexBuffer(swap.redeemScript!), transaction as Transaction)!.vout :
-        detectSwapLiquid(getHexBuffer(swap.redeemScript!), transaction as LiquidTransaction)!.vout;
+        detectSwapLiquid(getHexBuffer(swap.redeemScript!), transaction as any)!.vout;
     }
 
-    let claimTransaction: Transaction | LiquidTransaction;
+    let claimTransaction: any;
     let claimTransactionFee: number;
 
     if (chainClient.currencyType === CurrencyType.BitcoinLike) {
@@ -680,7 +680,7 @@ class SwapNursery extends EventEmitter {
         (wallet.network as LiquidNetwork).assetHash,
       );
 
-      claimTransactionFee = calculateLiquidTransactionFee(claimTransaction);
+      claimTransactionFee = calculateLiquidTransactionFee(claimTransaction as any);
     }
 
     await chainClient.sendRawTransaction(claimTransaction.toHex());

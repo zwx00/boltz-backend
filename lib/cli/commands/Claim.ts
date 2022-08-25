@@ -32,7 +32,7 @@ export const handler = (argv: Arguments<any>): void => {
 
   if (argv.network.includes('liquid')) {
     const transaction = TransactionLiquid.fromHex(argv.rawTransaction);
-    const swapOutput = detectSwapLiquid(redeemScript, transaction)!;
+    const swapOutput = detectSwapLiquid(redeemScript, transaction as any)!;
 
     claimTransaction = constructClaimTransactionLiquid(
       [{
