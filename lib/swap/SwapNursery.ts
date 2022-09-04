@@ -2,7 +2,7 @@ import AsyncLock from 'async-lock';
 import { EventEmitter } from 'events';
 import { crypto, Transaction } from 'bitcoinjs-lib';
 import { BigNumber, ContractTransaction } from 'ethers';
-import { Transaction as LiquidTransaction, Network as LiquidNetwork } from 'liquidjs-lib';
+import { Transaction as LiquidTransaction, NetworkExtended as LiquidNetwork } from 'liquidjs-lib';
 import { constructClaimTransaction, constructRefundTransaction, detectSwap, OutputType } from 'boltz-core';
 import { constructClaimTransaction as constructClaimTransactionLiquid, detectSwap as detectSwapLiquid } from 'boltz-core-liquid';
 import Errors from './Errors';

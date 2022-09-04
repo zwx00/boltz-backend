@@ -1,6 +1,6 @@
 import { BIP32Interface } from 'bip32';
 import { address, Network } from 'bitcoinjs-lib';
-import { address as liquidAddress, Network as LiquidNetwork } from 'liquidjs-lib';
+import { address as liquidAddress, NetworkExtended as LiquidNetwork } from 'liquidjs-lib';
 import Errors from './Errors';
 import Logger from '../Logger';
 import { CurrencyType } from '../consts/Enums';

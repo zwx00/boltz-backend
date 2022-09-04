@@ -115,7 +115,7 @@ class Boltz {
     } catch (error) {
       this.logger.error(`Could not start Boltz: ${formatError(error)}`);
       // eslint-disable-next-line no-process-exit
-      // process.exit(1);
+      process.exit(1);
     }
   }
 
