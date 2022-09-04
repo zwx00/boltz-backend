@@ -49,6 +49,11 @@ class Boltz {
       this.logger.error(`Unhandled rejection: ${formatError(reason)}`);
     }));
 
+    process.on('exit', () => {
+      this.logger.error(`Application shutting down because:`);
+      console.trace();
+    });
+
     this.db = new Database(this.logger, this.config.dbpath);
 
     try {
