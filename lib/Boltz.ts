@@ -50,7 +50,7 @@ class Boltz {
     }));
 
     process.on('exit', () => {
-      this.logger.error(`Application shutting down because:`);
+      this.logger.error('Application shutting down because:');
       console.trace();
     });
 
@@ -190,7 +190,7 @@ class Boltz {
       this.logger.error(`Could not initialize Boltz: ${formatError(error)}`);
       console.log(error);
       // eslint-disable-next-line no-process-exit
-      // process.exit(1);
+      process.exit(1);
     }
   };
 

@@ -1,13 +1,14 @@
-import zmq, { Socket } from 'zeromq';
-import { randomBytes } from 'crypto';
-import { OutputType } from 'boltz-core';
-import { Transaction, crypto } from 'bitcoinjs-lib';
+import zmq, {Socket} from 'zeromq';
+import {randomBytes} from 'crypto';
+import {OutputType} from 'boltz-core';
+import {crypto, Transaction} from 'bitcoinjs-lib';
 import Logger from '../../../lib/Logger';
 import Errors from '../../../lib/chain/Errors';
 import FakedChainClient from './FakeChainClient';
-import { getHexString, reverseBuffer } from '../../../lib/Utils';
-import ZmqClient, { ZmqNotification, filters } from '../../../lib/chain/ZmqClient';
-import { generateAddress, waitForFunctionToBeTrue, wait, getPort } from '../../Utils';
+import {CurrencyType} from '../../../lib/consts/Enums';
+import {getHexString, reverseBuffer} from '../../../lib/Utils';
+import ZmqClient, {filters, ZmqNotification} from '../../../lib/chain/ZmqClient';
+import {generateAddress, getPort, wait, waitForFunctionToBeTrue} from '../../Utils';
 
 class ZmqPublisher {
   public address: string;
@@ -94,7 +95,7 @@ describe('ZmqClient', () => {
     );
     const notifications: ZmqNotification[] = [];
 
-    await expect(rejectZmqClient.init(notifications)).rejects.toEqual(Errors.NO_RAWTX());
+    await expect(rejectZmqClient.init(CurrencyType.BitcoinLike, notifications)).rejects.toEqual(Errors.NO_RAWTX());
     await rejectZmqClient.close();
 
     notifications.push({
@@ -102,7 +103,7 @@ describe('ZmqClient', () => {
       address: rawTx.address,
     });
 
-    await expect(rejectZmqClient.init(notifications)).rejects.toEqual(Errors.NO_BLOCK_NOTIFICATIONS());
+    await expect(rejectZmqClient.init(CurrencyType.BitcoinLike, notifications)).rejects.toEqual(Errors.NO_BLOCK_NOTIFICATIONS());
     await rejectZmqClient.close();
   });
 
@@ -122,7 +123,7 @@ describe('ZmqClient', () => {
       },
     ];
 
-    await zmqClient.init(notifications);
+    await zmqClient.init(CurrencyType.BitcoinLike, notifications);
 
     zmqClient.relevantOutputs.add(getHexString(outputScript));
   });

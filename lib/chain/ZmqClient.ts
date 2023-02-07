@@ -98,13 +98,13 @@ class ZmqClient extends EventEmitter {
       throw Errors.NO_RAWTX();
     }
 
-    await this.initRawBlock();
-
     const logCouldNotSubscribe = (filter: string) => {
       this.logger.warn(`Could not find ${this.symbol} chain ZMQ filter: ${filter}`);
     };
 
-    if (!activeFilters.rawBlock) {
+    if (activeFilters.rawBlock) {
+      await this.initRawBlock();
+    } else {
       logCouldNotSubscribe(filters.rawBlock);
 
       if (!activeFilters.hashBlock) {

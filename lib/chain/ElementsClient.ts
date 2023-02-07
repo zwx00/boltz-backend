@@ -2,7 +2,7 @@ import Logger from '../Logger';
 import ChainClient from './ChainClient';
 import { ChainConfig } from '../Config';
 import { CurrencyType } from '../consts/Enums';
-import { LiquidBalances } from '../consts/LiquidTypes';
+import { AddressInfo, LiquidBalances } from '../consts/LiquidTypes';
 
 class ElementsClient extends ChainClient {
   constructor(
@@ -24,6 +24,36 @@ class ElementsClient extends ChainClient {
     }
 
     return res;
+  };
+
+  public sendToAddress = (
+    address: string,
+    amount: number,
+    satPerVbyte?: number,
+    subtractFeeFromAmount = false,
+  ): Promise<string> => {
+    return this.client.request<string>('sendtoaddress', [
+      address,
+      amount / ChainClient.decimals,
+      undefined,
+      undefined,
+      subtractFeeFromAmount,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      satPerVbyte,
+    ]);
+  };
+
+  public getAddressInfo = (address: string): Promise<AddressInfo> => {
+    return this.client.request<AddressInfo>('getaddressinfo', [address]);
+  };
+
+  public dumpBlindingKey = (address: string): Promise<string> => {
+    return this.client.request<string>('dumpblindingkey', [address]);
   };
 }
 

@@ -211,13 +211,23 @@ class ChainClient extends BaseClient {
     return result;
   };
 
-  public sendToAddress = (address: string, amount: number, subtractFeeFromAmount = false): Promise<string> => {
+  public sendToAddress = (
+    address: string,
+    amount: number,
+    satPerVbyte?: number,
+    subtractFeeFromAmount = false,
+  ): Promise<string> => {
     return this.client.request<string>('sendtoaddress', [
       address,
       amount / ChainClient.decimals,
       undefined,
       undefined,
       subtractFeeFromAmount,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      satPerVbyte,
     ]);
   };
 
