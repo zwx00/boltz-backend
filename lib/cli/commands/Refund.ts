@@ -1,41 +1,51 @@
 import { Arguments } from 'yargs';
-import { address, Transaction } from 'bitcoinjs-lib';
-import { Networks, constructRefundTransaction, detectSwap } from 'boltz-core';
-import { ECPair } from '../../ECPairHelper';
+import { constructRefundTransaction } from 'boltz-core';
+import { constructRefundTransaction as constructRefundTransactionLiquid } from 'boltz-core-liquid';
+import { prepareTx } from '../Command';
+import { stringify } from '../../Utils';
 import BuilderComponents from '../BuilderComponents';
-import { getHexBuffer, stringify } from '../../Utils';
 
-export const command = 'refund <network> <privateKey> <redeemScript> <rawTransaction> <destinationAddress>';
+export const command = 'refund <network> <privateKey> <timeoutBlockHeight> <redeemScript> <rawTransaction> <destinationAddress> [feePerVbyte]';
 
 export const describe = 'refunds submarine or chain to chain swaps';
 
 export const builder = {
   network: BuilderComponents.network,
   privateKey: BuilderComponents.privateKey,
+  timeoutBlockHeight: {
+    describe: 'timeout block height of the swap',
+    type: 'number',
+  },
   redeemScript: BuilderComponents.redeemScript,
   rawTransaction: BuilderComponents.rawTransaction,
   destinationAddress: BuilderComponents.destinationAddress,
+  feePerVbyte: BuilderComponents.feePerVbyte,
 };
 
 export const handler = (argv: Arguments<any>): void => {
-  const network = Networks[argv.network];
+  const {
+    network,
+    keys,
+    isLiquid,
+    swapOutput,
+    transaction,
+    redeemScript,
+    destinationAddress,
+  } = prepareTx(argv);
 
-  const redeemScript = getHexBuffer(argv.redeemScript);
-  const transaction = Transaction.fromHex(argv.rawTransaction);
-
-  const swapOutput = detectSwap(redeemScript, transaction)!;
-
-  const refundTransaction = constructRefundTransaction(
+  const refundTransaction = (isLiquid ? constructRefundTransactionLiquid : constructRefundTransaction)(
     [{
       ...swapOutput,
+      keys,
+      redeemScript,
       txHash: transaction.getHash(),
-      redeemScript: getHexBuffer(argv.redeemScript),
-      keys: ECPair.fromPrivateKey(getHexBuffer(argv.privateKey)),
-    }],
-    address.toOutputScript(argv.destinationAddress, network),
-    0,
-    2,
+    } as any],
+    destinationAddress,
+    argv.timeoutBlockHeight,
+    argv.feePerVbyte,
     true,
+    // Needed for Liquid
+    network.assetHash,
   ).toHex();
 
   console.log(stringify({ refundTransaction }));
